@@ -22,7 +22,7 @@ jobs:
     - name: Get latest release from upstream
       id: release
       run: |
-        LATEST=$(curl -s https://api.github.com/repos/0FL01/AyuGramDesktop-flatpak/releases/latest)
+        LATEST=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest)
         VERSION=$(echo "$LATEST" | jq -r '.tag_name')
         FLATPAK_URL=$(echo "$LATEST" | jq -r '.assets[] | select(.name | endswith(".flatpak")) | .browser_download_url')
         
