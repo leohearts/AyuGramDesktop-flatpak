@@ -1,4 +1,4 @@
-name: Convert Flatpak Release to Repo
+name: Convert Flatpak Release to Repo (Beta)
 
 on:
   release:
@@ -19,7 +19,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y flatpak ostree jq
     
-    - name: Get latest release from upstream
+    - name: Get latest release
       id: release
       run: |
         LATEST=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest)
@@ -45,13 +45,13 @@ jobs:
           ostree init --mode=archive-z2 --repo=repo
         fi
     
-    - name: Import flatpak into repo
+    - name: Import flatpak into repo (beta branch)
       run: |
-        flatpak build-import-bundle repo app.flatpak
+        flatpak build-import-bundle --ref=beta repo app.flatpak
     
-    - name: Update repo metadata
+    - name: Update repo metadata with default branch
       run: |
-        flatpak build-update-repo --generate-static-deltas repo
+        flatpak build-update-repo --generate-static-deltas --default-branch=stable repo
     
     - name: Create index.html
       run: |
@@ -114,6 +114,13 @@ jobs:
                     font-weight: bold;
                     margin-right: 10px;
                 }
+                .branch-section {
+                    background: #fffbdd;
+                    padding: 15px;
+                    border-radius: 6px;
+                    border-left: 4px solid #ffcc00;
+                    margin: 20px 0;
+                }
             </style>
         </head>
         <body>
@@ -123,10 +130,16 @@ jobs:
                 
                 <h2>Installation Instructions</h2>
                 
-                <div class="step">
                     <pre>flatpak remote-add --user --no-gpg-verify ayugram ${REPO_URL}</pre>
                     <pre>flatpak remote-ls ayugram</pre>
                     <pre>flatpak install ayugram com.ayugram.desktop</pre>
+                
+                <div class="branch-section">
+                    <h3>🧪 Beta Channel</h3>
+                    <p>To install the beta version instead:</p>
+                    <pre>flatpak install ayugram com.ayugram.desktop//beta</pre>
+                    <p>To switch from stable to beta:</p>
+                    <pre>flatpak update --commit=beta com.ayugram.desktop</pre>
                 </div>
                 
                 <h2>Update</h2>

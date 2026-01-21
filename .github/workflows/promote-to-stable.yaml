@@ -1,0 +1,59 @@
+name: Promote Beta to Stable
+
+on:
+  workflow_dispatch: # Manual trigger only
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install flatpak and ostree
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y flatpak ostree
+    
+    - name: Clone repo from gh-pages
+      run: |
+        git clone --branch gh-pages --single-branch https://github.com/${{ github.repository }}.git repo
+    
+    - name: Get beta commit and promote to stable
+      run: |
+        cd repo
+        
+        # Find the app ref in beta branch
+        APP_REF=$(ostree refs --repo=. | grep "/beta$" | head -n1)
+        
+        if [ -z "$APP_REF" ]; then
+          echo "Error: No beta branch found"
+          exit 1
+        fi
+        
+        echo "Found beta ref: $APP_REF"
+        
+        # Get the commit hash from beta
+        COMMIT=$(ostree rev-parse --repo=. "$APP_REF")
+        echo "Beta commit: $COMMIT"
+        
+        # Create stable ref pointing to the same commit
+        STABLE_REF="${APP_REF%/beta}/stable"
+        echo "Creating stable ref: $STABLE_REF"
+        
+        ostree refs --repo=. --create="$STABLE_REF" "$COMMIT"
+        
+        cd ..
+    
+    - name: Update repo metadata
+      run: |
+        flatpak build-update-repo --generate-static-deltas --default-branch=stable repo
+    
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./repo
+        keep_files: true
