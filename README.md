@@ -40,6 +40,7 @@ To build the package from source code yourself, please follow the official guide
 - Font customization
 - Streamer mode
 - Local Telegram Premium
+- Translator
 - Media preview & quick reaction on force click (macOS)
 - Enhanced appearance
 
@@ -47,11 +48,18 @@ And many more. Check out our [Documentation](https://docs.ayugram.one/desktop/).
 
 <h3>
   <details>
-    <summary>Preferences screenshots</summary>
-    <img src='https://raw.githubusercontent.com/AyuGram/AyuGramDesktop/dev/.github/demos/demo1.png' width='268'>
-    <img src='https://raw.githubusercontent.com/AyuGram/AyuGramDesktop/dev/.github/demos/demo2.png' width='268'>
-    <img src='https://raw.githubusercontent.com/AyuGram/AyuGramDesktop/dev/.github/demos/demo3.png' width='268'>
-    <img src='https://raw.githubusercontent.com/AyuGram/AyuGramDesktop/dev/.github/demos/demo4.png' width='268'>
+    <summary>Preview</summary>
+    <table>
+      <tr>
+        <td><img src='.github/demos/demo1.png' width='268' alt='Preferences'></td>
+        <td><img src='.github/demos/demo2.png' width='268' alt='AyuGram Options'></td>
+        <td><img src='.github/demos/demo3.png' width='268' alt='Message Filters'></td>
+      </tr>
+      <tr>
+        <td><img src='.github/demos/demo4.png' width='268' alt='Appearance'></td>
+        <td><img src='.github/demos/demo5.png' width='268' alt='Chats'></td>
+      </tr>
+    </table>
   </details>
 </h3>
 
@@ -114,13 +122,19 @@ See [this repository](https://github.com/ayugram-port/ayugram-desktop) for insta
 
 [Sisyphus](https://packages.altlinux.org/en/sisyphus/srpms/ayugram-desktop/)
 
+### Gentoo Linux
+
+See [this repository](https://github.com/OverLessArtem/ayugram-ebuild-gentoo) for installation manual.
+
 ### EPM
 
 `epm play ayugram`
 
 ### Any other Linux distro
 
-Follow the [official guide](https://github.com/AyuGram/AyuGramDesktop/blob/dev/docs/building-linux.md).
+Flatpak: https://github.com/0FL01/AyuGramDesktop-flatpak
+
+Or follow the [official guide](https://github.com/AyuGram/AyuGramDesktop/blob/dev/docs/building-linux.md).
 
 ### Remarks for Windows
 
@@ -150,6 +164,7 @@ Enjoy using **AyuGram**? Consider sending us a tip!
 - [JSON for Modern C++](https://github.com/nlohmann/json)
 - [SQLite](https://github.com/sqlite/sqlite)
 - [sqlite_orm](https://github.com/fnc12/sqlite_orm)
+- [androidx sources](https://github.com/androidx/androidx)
 
 ### Icons
 
