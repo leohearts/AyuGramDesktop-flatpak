@@ -42,7 +42,10 @@ jobs:
     - name: Check if version updated
       id: check
       run: |
-        if [ -f latest.txt ] && [ "$(cat latest.txt)" = "${{ steps.release.outputs.version }}" ]; then
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "Manual dispatch: forcing build."
+          echo "updated=true" >> $GITHUB_OUTPUT
+        elif [ -f latest.txt ] && [ "$(cat latest.txt)" = "${{ steps.release.outputs.version }}" ]; then
           echo "Version ${{ steps.release.outputs.version }} is already built. Skipping."
           echo "updated=false" >> $GITHUB_OUTPUT
         else
