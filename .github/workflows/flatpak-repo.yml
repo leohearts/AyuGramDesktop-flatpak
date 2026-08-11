@@ -1,3 +1,5 @@
+---
+
 name: Convert Flatpak Release to Repo
 
 on:
@@ -8,25 +10,35 @@ on:
     - cron: '0 6 * * 1'
   workflow_dispatch: # Allow manual trigger
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: gh-pages-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   update-repo:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Get latest release from upstream
       id: release
       run: |
         LATEST=$(curl -s https://api.github.com/repos/0FL01/AyuGramDesktop-flatpak/releases/latest)
         VERSION=$(echo "$LATEST" | jq -r '.tag_name')
         FLATPAK_URL=$(echo "$LATEST" | jq -r '.assets[] | select(.name | endswith(".flatpak")) | .browser_download_url')
-        
+
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "url=$FLATPAK_URL" >> $GITHUB_OUTPUT
-        
+
         echo "Latest version: $VERSION"
         echo "Flatpak URL: $FLATPAK_URL"
 
@@ -56,12 +68,12 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y flatpak ostree jq
-    
+
     - name: Download flatpak file
       if: steps.check.outputs.updated == 'true'
       run: |
         wget -O app.flatpak "${{ steps.release.outputs.url }}"
-    
+
     - name: Initialize or update repo
       if: steps.check.outputs.updated == 'true'
       run: |
@@ -72,29 +84,29 @@ jobs:
         else
           ostree init --mode=archive-z2 --repo=repo
         fi
-    
+
     - name: Import flatpak into repo
       if: steps.check.outputs.updated == 'true'
       run: |
         flatpak build-import-bundle repo app.flatpak
-    
+
     - name: Update repo metadata
       if: steps.check.outputs.updated == 'true'
       run: |
         flatpak build-update-repo --generate-static-deltas repo
-        
+
     - name: Cleanup old refs
       if: steps.check.outputs.updated == 'true'
       run: |
         flatpak build-update-repo --prune --prune-depth=2 repo
-    
+
     - name: Create index.html
       if: steps.check.outputs.updated == 'true'
       run: |
         REPO_OWNER=$(echo "${{ github.repository }}" | cut -d'/' -f1)
         REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
         REPO_URL="https://${REPO_OWNER}.github.io/${REPO_NAME}/"
-        
+
         cat > repo/index.html << EOF
         <!DOCTYPE html>
         <html lang="en">
@@ -126,7 +138,7 @@ jobs:
                     background: #f6f8fa;
                     padding: 2px 6px;
                     border-radius: 3px;
-                    font-family: 'Courier New', monospace;
+                    font-family: 'Monaco', monospace;
                 }
                 pre {
                     background: #f6f8fa;
@@ -156,26 +168,26 @@ jobs:
             <div class="container">
                 <h1>AyuGram Flatpak Repository (Unofficial)</h1>
                 <p>This repository hosts Flatpak packages for AyuGram Desktop.</p>
-                
+
                 <h2>Installation Instructions</h2>
-                
+
                 <div class="step">
                     <pre>flatpak remote-add --user --no-gpg-verify ayugram ${REPO_URL}</pre>
                     <pre>flatpak remote-ls ayugram</pre>
                     <pre>flatpak install ayugram com.ayugram.desktop</pre>
                 </div>
-                
+
                 <h2>Update</h2>
                 <p>To update to the latest version:</p>
                 <pre>flatpak update com.ayugram.desktop</pre>
-                
+
                 <h2>Uninstall</h2>
                 <p>To remove AyuGram:</p>
                 <pre>flatpak uninstall com.ayugram.desktop</pre>
-                
+
                 <p>To remove the repository:</p>
                 <pre>flatpak remote-delete ayugram</pre>
-                
+
                 <hr style="margin: 30px 0; border: none; border-top: 1px solid #e1e4e8;">
                 <p style="color: #586069; font-size: 14px;">
                     Upstream: <a href="https://github.com/0FL01/AyuGramDesktop-flatpak">0FL01/AyuGramDesktop-flatpak</a><br>
@@ -185,11 +197,14 @@ jobs:
         </body>
         </html>
         EOF
-    
-    - name: Deploy to GitHub Pages
+
+    - name: Upload Pages artifact
       if: steps.check.outputs.updated == 'true'
-      uses: peaceiris/actions-gh-pages@v4
+      uses: actions/upload-pages-artifact@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./repo
-        keep_files: true
+        path: ./repo
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      if: steps.check.outputs.updated == 'true'
+      uses: actions/deploy-pages@v4
